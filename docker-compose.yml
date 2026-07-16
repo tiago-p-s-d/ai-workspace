@@ -1,0 +1,59 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: ai-assistant-db
+    networks:
+      - ai-network
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ai_assistant_db
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    container_name: ai-back
+    networks:
+      - ai-network
+    command: npm run dev
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=ai_assistant_db
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - PORT=3000
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: ai-front
+    networks:
+      - ai-network
+
+    command: ng serve --host 0.0.0.0 --port 4200 --poll 2000 
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.angular
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
+
+networks:
+  ai-network:
+    driver: bridge
