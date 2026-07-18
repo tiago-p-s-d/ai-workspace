@@ -14,6 +14,13 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    # ADICIONADO: Healthcheck para verificar se o MySQL está rodando
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   backend:
     build: ./backend
@@ -33,14 +40,14 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - PORT=3000
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
     container_name: ai-front
     networks:
       - ai-network
-
     command: ng serve --host 0.0.0.0 --port 4200 --poll 2000 
     volumes:
       - ./frontend:/app
