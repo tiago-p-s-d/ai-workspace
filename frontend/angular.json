@@ -63,7 +63,8 @@
               "localhost",
               "127.0.0.1",
               "ai-front"
-            ]
+            ],
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {
