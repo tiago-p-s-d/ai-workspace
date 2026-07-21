@@ -20,7 +20,7 @@ export class UserService {
    * @returns Observable with the server response
    */
   createUser(userData: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/create`, userData);
+    return this.http.post(`${this.baseUrl}/users/create`, userData);
   }
 
   /**
@@ -29,7 +29,7 @@ export class UserService {
    * @returns Observable with user session data and token
    */
   login(credentials: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/login`, credentials).pipe(
+    return this.http.post<any>(`${this.baseUrl}/users/login`, credentials).pipe(
       tap((response) => {
         if (response?.token && isPlatformBrowser(this.platformId)) {
           localStorage.setItem(this.TOKEN_KEY, response.token);

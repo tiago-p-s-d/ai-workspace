@@ -1,0 +1,92 @@
+.chat-layout-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #1e1e2e;
+  color: #cdd6f4;
+}
+
+.chat-layout-container .sidebar {
+  width: 260px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #181825;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+}
+
+.chat-layout-container .sidebar .sidebar-header {
+  margin-bottom: 1rem;
+}
+
+.chat-layout-container .sidebar .sidebar-header .btn-new-chat {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: #ffffff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.chat-layout-container .sidebar .sidebar-header .btn-new-chat:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.chat-layout-container .sidebar .sidebar-header .btn-new-chat .icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.chat-layout-container .sidebar .history-navigation {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.chat-layout-container .sidebar .history-navigation .history-item {
+  display: block;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  color: #a6adc8;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.chat-layout-container .sidebar .history-navigation .history-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #cdd6f4;
+}
+
+.chat-layout-container .sidebar .history-navigation .history-item.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.chat-layout-container .sidebar .history-navigation .empty-state,
+.chat-layout-container .sidebar .history-navigation .skeleton-loader {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6c7086;
+}
+
+.chat-layout-container .chat-viewport {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}

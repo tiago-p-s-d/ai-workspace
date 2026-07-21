@@ -35,7 +35,10 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=db # Sobrescreve o DB_HOST do .env para usar o nome do serviço no Docker Network
+      - DB_HOST=db
+      - OLLAMA_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       db:
         condition: service_healthy

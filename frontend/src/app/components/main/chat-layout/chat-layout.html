@@ -1,0 +1,36 @@
+<div class="chat-layout-container">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <button class="btn-new-chat" (click)="handleNewChat()">
+        <span class="icon">+</span> New Chat
+      </button>
+    </div>
+
+    <nav class="history-navigation">
+      @if (isLoading()) {
+        <div class="skeleton-loader">
+          <p>Loading history...</p>
+        </div>
+      } @else {
+        @for (chat of chats(); track chat.id) {
+          <a 
+            [routerLink]="['/chat', chat.id]" 
+            routerLinkActive="active" 
+            class="history-item">
+            <span class="chat-title">{{ chat.title }}</span>
+          </a>
+        } @empty {
+          <div class="empty-state">
+            <p>No recent conversations</p>
+          </div>
+        }
+      }
+    </nav>
+  </aside>
+
+
+  <main class="chat-viewport">
+    <router-outlet></router-outlet>
+  </main>
+</div>
