@@ -1,0 +1,22 @@
+<div class="main-wrapper">
+  <div class="form-window">
+    <h3 class="title">Login</h3>
+    
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      <div class="field-group">
+        <label for="email">Email Address</label>
+        <input formControlName="email" type="email" id="email" placeholder="name@example.com">
+      </div>
+
+      <div class="field-group">
+        <label for="password">Password</label>
+        <input formControlName="password" type="password" id="password" placeholder="Enter your password">
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <button type="submit" [disabled]="loginForm.invalid">
+        Sign In
+      </button>
+    </form>
+  </div>
+</div>

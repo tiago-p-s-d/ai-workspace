@@ -1,0 +1,26 @@
+<div class="main-wrapper">
+  <div class="form-window">
+    <h3 class="title">Create New User</h3>
+    
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <div class="field-group">
+        <label for="name">Full Name</label>
+        <input formControlName="name" type="text" id="name" placeholder="Enter your full name">
+      </div>
+
+      <div class="field-group">
+        <label for="email">Email Address</label>
+        <input formControlName="email" type="email" id="email" placeholder="name@example.com">
+      </div>
+
+      <div class="field-group">
+        <label for="password">Password</label>
+        <input formControlName="password" type="password" id="password" placeholder="Create a secure password">
+      </div>
+
+      <button type="submit" [disabled]="userForm.invalid">
+        Register User
+      </button>
+    </form>
+  </div>
+</div>
