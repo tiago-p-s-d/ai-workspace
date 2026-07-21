@@ -1,0 +1,60 @@
+<div class="chat-window-container">
+  @if (!activeChatId()) {
+    <!-- Empty State (No Active Chat Selected) -->
+    <div class="no-chat-selected">
+      <h2>Welcome to AI Assistant</h2>
+      <p>Select a chat from the sidebar or click "New Chat" to begin a conversation.</p>
+    </div>
+  } @else {
+    <!-- Active Chat Conversation -->
+    <div #scrollContainer class="messages-viewport">
+      @if (isLoadingMessages()) {
+        <div class="loader-container">
+          <p>Loading messages...</p>
+        </div>
+      } @else {
+        @for (msg of messages(); track $index) {
+          <div class="message-row" [class.user]="msg.sender === 'user'" [class.assistant]="msg.sender === 'assistant'">
+            <div class="message-bubble">
+              <span class="sender-label">{{ msg.sender === 'user' ? 'You' : 'Assistant' }}</span>
+              <p class="message-content">{{ msg.content }}</p>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-conversation">
+            <p>This conversation is empty. Type a message below to start!</p>
+          </div>
+        }
+
+        @if (isSending()) {
+          <div class="message-row assistant">
+            <div class="message-bubble typing-indicator">
+              <span>Assistant is typing...</span>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Input Box Control -->
+    <footer class="input-area">
+      <form (ngSubmit)="handleSendMessage()" class="input-form">
+        <textarea
+          [(ngModel)]="userPrompt"
+          name="userPrompt"
+          rows="1"
+          placeholder="Type your message..."
+          [disabled]="isSending()"
+          (keydown.enter)="$event.preventDefault(); handleSendMessage()">
+        </textarea>
+        
+        <button 
+          type="submit" 
+          class="btn-send" 
+          [disabled]="!userPrompt.trim() || isSending()">
+          Send
+        </button>
+      </form>
+    </footer>
+  }
+</div>
