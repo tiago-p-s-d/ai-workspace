@@ -5,104 +5,128 @@
   overflow: hidden;
   background-color: #1e1e2e;
   color: #cdd6f4;
-}
 
-/* Sidebar com contraste correto */
-.chat-layout-container .sidebar {
-  width: 280px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: #11111b;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 1.25rem 0.875rem;
-}
+  .sidebar {
+    width: 280px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #000;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.25rem 0.875rem;
 
-.chat-layout-container .sidebar .sidebar-header {
-  margin-bottom: 1.25rem;
-}
+    .sidebar-header {
+      margin-bottom: 1.25rem;
 
-/* Botão Novo Chat com tom de destaque azul */
-.chat-layout-container .sidebar .sidebar-header .btn-new-chat {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #89b4fa;
-  background-color: transparent;
-  color: #89b4fa;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+      .btn-new-chat {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
 
-.chat-layout-container .sidebar .sidebar-header .btn-new-chat:hover {
-  background-color: rgba(137, 180, 250, 0.15);
-  transform: translateY(-1px);
-}
+        border: 1px solid #89b4fa;
+        border-radius: 8px;
 
-.chat-layout-container .sidebar .sidebar-header .btn-new-chat .icon {
-  font-size: 1.25rem;
-  line-height: 1;
-}
+        background: transparent;
+        color: #89b4fa;
 
-/* Navegação do Histórico */
-.chat-layout-container .sidebar .history-navigation {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding-right: 0.25rem;
-}
+        font-size: 0.9rem;
+        font-weight: 600;
 
-.chat-layout-container .sidebar .history-navigation::-webkit-scrollbar {
-  width: 4px;
-}
+        cursor: pointer;
+        transition: all 0.2s ease;
 
-.chat-layout-container .sidebar .history-navigation::-webkit-scrollbar-thumb {
-  background: #313244;
-  border-radius: 2px;
-}
+        &:hover {
+          background: rgba(137, 180, 250, 0.15);
+          transform: translateY(-1px);
+        }
 
-.chat-layout-container .sidebar .history-navigation .history-item {
-  display: flex;
-  align-items: center;
-  padding: 0.7rem 0.85rem;
-  border-radius: 8px;
-  color: #a6adc8;
-  text-decoration: none;
-  transition: all 0.15s ease;
-}
+        .icon {
+          font-size: 1.25rem;
+          line-height: 1;
+        }
+      }
+    }
 
-.chat-layout-container .sidebar .history-navigation .history-item .chat-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.9rem;
-  width: 100%;
-}
+    .history-navigation {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding-right: 0.25rem;
 
-.chat-layout-container .sidebar .history-navigation .history-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #cdd6f4;
-}
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
 
-.chat-layout-container .sidebar .history-navigation .history-item.active {
-  background-color: #313244;
-  color: #89b4fa;
-  font-weight: 600;
-  border-left: 3px solid #89b4fa;
-}
+      &::-webkit-scrollbar-thumb {
+        background: #313244;
+        border-radius: 2px;
+      }
 
-/* Viewport Principal */
-.chat-layout-container .chat-viewport {
-  flex: 1;
-  height: 100%;
-  overflow: hidden;
-  background-color: #1e1e2e;
+      .history-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        .chat-link {
+          flex: 1;
+
+          display: flex;
+          align-items: center;
+
+          padding: 0.7rem 0.85rem;
+
+          border-radius: 8px;
+
+          color: #a6adc8;
+          text-decoration: none;
+
+          transition: all 0.2s ease;
+
+          &:hover,
+          &.active {
+            background-color: #313244;
+            color: #fff;
+          }
+
+          .chat-title {
+            flex: 1;
+
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+
+            font-size: 0.9rem;
+          }
+        }
+
+        .btn-delete {
+          flex-shrink: 0;
+          width: 36px;
+          height: 36px;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          padding: 0;
+
+          i {
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+  }
+
+  .chat-viewport {
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+  }
 }
