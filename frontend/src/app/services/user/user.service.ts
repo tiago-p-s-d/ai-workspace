@@ -3,9 +3,20 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { API_URL } from '../../app.config';
 import { Observable, tap } from 'rxjs';
+import { jwtDecode } from 'jwt-decode';
+
+
+export interface CustomJwtPayload {
+  id: number;
+  email?: string;
+  nome?: string;
+  sub?: string;
+  exp?: number;
+  iat?: number;
+}
 
 @Injectable({
-  providedIn: 'root' 
+  providedIn: 'root'
 })
 export class UserService {
   private http = inject(HttpClient);
@@ -14,20 +25,10 @@ export class UserService {
 
   private readonly TOKEN_KEY = 'auth_token';
 
-  /**
-   * Registers a new user.
-   * @param userData Object containing user registration fields
-   * @returns Observable with the server response
-   */
   createUser(userData: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/users/create`, userData);
   }
 
-  /**
-   * Authenticates a user and stores the returned JWT token in LocalStorage.
-   * @param credentials Object containing email and password
-   * @returns Observable with user session data and token
-   */
   login(credentials: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/users/login`, credentials).pipe(
       tap((response) => {
@@ -38,10 +39,6 @@ export class UserService {
     );
   }
 
-  /**
-   * Retrieves the stored JWT token from LocalStorage if executing in the browser.
-   * @returns The JWT string token or null if not present/SSR environment
-   */
   getToken(): string | null {
     if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem(this.TOKEN_KEY);
@@ -50,18 +47,28 @@ export class UserService {
   }
 
   /**
-   * Clears the user authentication session by removing the token from LocalStorage.
+   * Extrai o email diretamente do JWT usando a biblioteca jwt-decode
    */
-  logout(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem(this.TOKEN_KEY);
+  getUserEmail(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const decoded = jwtDecode<CustomJwtPayload>(token);
+      return decoded.email || decoded.sub || null;
+    } catch (error) {
+      console.error('Erro ao decodificar JWT:', error);
+      return null;
     }
   }
 
-  /**
-   * Checks if the user is currently authenticated based on token availability.
-   * @returns True if a valid token exists, false otherwise
-   */
+  logout(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem('chats_cache');
+    }
+  }
+
   isLoggedIn(): boolean {
     return !!this.getToken();
   }

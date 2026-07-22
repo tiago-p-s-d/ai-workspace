@@ -12,12 +12,35 @@
           <path d="M9 13v2"></path>
         </svg>
       </div>
-      <h2>Bem-vindo ao AI Assistant</h2>
-      <p>Selecione uma conversa ao lado ou inicie um novo chat para começar.</p>
+      <h2>AI Assistant</h2>
+      <p>Select a conversation from the sidebar or start a new chat to begin.</p>
     </div>
   } @else {
     <!-- Active Chat Header -->
     <header class="chat-header">
+      <div class="title-container">
+        @if (isEditingTitle()) {
+          <input
+            #titleInput
+            type="text"
+            class="title-input"
+            [value]="chatTitle()"
+            (keydown.enter)="saveTitle(titleInput.value)"
+            (keydown.escape)="cancelTitleEdit()"
+            (blur)="saveTitle(titleInput.value)"
+            placeholder="Enter chat title..."
+          />
+        } @else {
+          <h1 class="chat-title" (click)="enableTitleEdit()" title="Click to edit title">
+            <span>{{ chatTitle() || 'Untitled Chat' }}</span>
+            <svg class="edit-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </h1>
+        }
+      </div>
+
       <div class="chat-title-info">
         <span class="status-dot"></span>
         <span class="model-badge">Qwen 2.5 Coder</span>
@@ -29,28 +52,28 @@
       @if (isLoadingMessages()) {
         <div class="loader-container">
           <div class="spinner"></div>
-          <p>Carregando histórico...</p>
+          <p>Loading history...</p>
         </div>
       } @else {
         @for (msg of messages(); track $index) {
           <div class="message-row" [class.user]="msg.sender === 'user'" [class.assistant]="msg.sender === 'assistant'">
             <div class="message-bubble">
               <div class="bubble-header">
-                <span class="sender-label">{{ msg.sender === 'user' ? 'Você' : 'Assistente' }}</span>
+                <span class="sender-label">{{ msg.sender === 'user' ? 'You' : 'Assistant' }}</span>
               </div>
               <div class="message-content">{{ msg.content }}</div>
             </div>
           </div>
         } @empty {
           <div class="empty-conversation">
-            <p>Sua conversa está limpa. Envie uma mensagem abaixo para começar!</p>
+            <p>Your conversation is empty. Send a message below to start!</p>
           </div>
         }
 
         @if (isSending()) {
           <div class="message-row assistant">
             <div class="message-bubble typing-bubble">
-              <span class="sender-label">Assistente</span>
+              <span class="sender-label">Assistant</span>
               <div class="typing-dots">
                 <span></span>
                 <span></span>
@@ -71,7 +94,7 @@
             [(ngModel)]="userPrompt"
             name="userPrompt"
             rows="1"
-            placeholder="Digite sua mensagem... (Enter para enviar, Shift+Enter para quebrar linha)"
+            placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
             [disabled]="isSending()"
             (input)="adjustTextareaHeight()"
             (keydown)="onKeydown($event)">
@@ -81,7 +104,7 @@
             type="submit" 
             class="btn-send" 
             [disabled]="!userPrompt.trim() || isSending()"
-            title="Enviar mensagem">
+            title="Send message">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>

@@ -12,6 +12,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { ChatWindowService, Message } from '../../../services/chat/window/chat-window';
+import { ChatLayoutService } from '../../../services/chat/layout/chat-layout';
 
 @Component({
   selector: 'app-chat-window',
@@ -23,9 +24,11 @@ import { ChatWindowService, Message } from '../../../services/chat/window/chat-w
 export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('messageInput') private messageInput!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('titleInput') private titleInput!: ElementRef<HTMLInputElement>;
 
   private route = inject(ActivatedRoute);
   private chatWindowService = inject(ChatWindowService);
+  private chatLayoutService = inject(ChatLayoutService);
   private routeSubscription!: Subscription;
 
   // State Signals
@@ -34,6 +37,10 @@ export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
   isLoadingMessages = signal<boolean>(false);
   isSending = signal<boolean>(false);
   
+  // Title Signals
+  chatTitle = signal<string>('New Chat');
+  isEditingTitle = signal<boolean>(false);
+
   // Input Binding
   userPrompt = '';
 
@@ -48,6 +55,7 @@ export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
         this.loadMessages(id);
       } else {
         this.messages.set([]);
+        this.chatTitle.set('New Chat');
       }
     });
   }
@@ -63,6 +71,54 @@ export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
     if (this.routeSubscription) {
       this.routeSubscription.unsubscribe();
     }
+  }
+
+  /**
+   * Enables inline editing mode for the chat title and focuses the input field.
+   */
+  enableTitleEdit(): void {
+    this.isEditingTitle.set(true);
+    setTimeout(() => {
+      this.titleInput?.nativeElement?.focus();
+      this.titleInput?.nativeElement?.select();
+    });
+  }
+
+  /**
+   * Cancels title editing mode without persisting changes.
+   */
+  cancelTitleEdit(): void {
+    this.isEditingTitle.set(false);
+  }
+
+  /**
+   * Saves the newly updated chat title to the backend and updates the reactive layout state.
+   * 
+   * @param newTitle Proposed chat title text.
+   */
+  saveTitle(newTitle: string): void {
+    const trimmed = newTitle.trim();
+    const chatId = this.activeChatId();
+
+    if (!trimmed || trimmed === this.chatTitle() || !chatId) {
+      this.cancelTitleEdit();
+      return;
+    }
+
+    const previousTitle = this.chatTitle();
+    this.chatTitle.set(trimmed);
+    this.isEditingTitle.set(false);
+
+    this.chatWindowService.updateChatTitle(chatId, trimmed).subscribe({
+      next: () => {
+        // Instantly notify the sidebar layout service to update state without F5
+        this.chatLayoutService.updateChatTitleInState(chatId, trimmed);
+      },
+      error: (err) => {
+        console.error('Failed to update title:', err);
+        this.chatTitle.set(previousTitle);
+      }
+    });
   }
 
   /**
@@ -125,7 +181,6 @@ export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
     this.isSending.set(true);
     this.shouldScrollToBottom = true;
 
-    // Reset textarea height after sending
     if (this.messageInput) {
       this.messageInput.nativeElement.style.height = 'auto';
     }

@@ -1,4 +1,5 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -24,6 +25,9 @@ export class ChatLayoutService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private apiUrl = inject(API_URL);
+  private platformId = inject(PLATFORM_ID);
+
+  private readonly CACHE_KEY = 'chats_cache';
 
   /**
    * Reactive signal holding the current list of chats for the sidebar.
@@ -35,16 +39,58 @@ export class ChatLayoutService {
    */
   readonly isLoading = signal<boolean>(false);
 
+  constructor() {
+    this.loadFromCache();
+  }
+
+  /**
+   * Loads initial chats from browser LocalStorage to prevent flicker on page refresh.
+   */
+  private loadFromCache(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const cachedData = localStorage.getItem(this.CACHE_KEY);
+      if (cachedData) {
+        try {
+          this.chats.set(JSON.parse(cachedData));
+        } catch (error) {
+          console.error('Failed to parse cached chats:', error);
+        }
+      }
+    }
+  }
+
+  /**
+   * Saves current state to LocalStorage for SSR/Browser hydrations.
+   */
+  private saveToCache(data: Chat[]): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(this.CACHE_KEY, JSON.stringify(data));
+    }
+  }
+
+  /**
+   * Resets local signals state upon user logout.
+   */
+  clearState(): void {
+    this.chats.set([]);
+    this.isLoading.set(false);
+  }
+
   /**
    * Fetches the user's chat history from the backend and updates the `chats` signal.
+   * Performs silent updates in background if cached data is already present.
    * 
    * @returns Observable emitting the array of user chats.
    */
   loadUserChats(): Observable<Chat[]> {
-    this.isLoading.set(true);
+    if (this.chats().length === 0) {
+      this.isLoading.set(true);
+    }
+
     return this.http.get<Chat[]>(`${this.apiUrl}/chats`).pipe(
       tap((data) => {
         this.chats.set(data);
+        this.saveToCache(data);
         this.isLoading.set(false);
       }),
       catchError((error) => {
@@ -63,9 +109,11 @@ export class ChatLayoutService {
   createNewChat(): Observable<Chat> {
     return this.http.post<Chat>(`${this.apiUrl}/chats`, {}).pipe(
       tap((newChat) => {
-        // Prepend the new chat to the reactive list
-        this.chats.update((list) => [newChat, ...list]);
-        // Navigate to the newly created chat route
+        this.chats.update((list: Chat[]) => {
+          const updated = [newChat, ...list];
+          this.saveToCache(updated);
+          return updated;
+        });
         this.router.navigate(['/chat', newChat.id]);
       }),
       catchError((error) => {
@@ -73,6 +121,22 @@ export class ChatLayoutService {
         return throwError(() => new Error('Could not create a new chat session.'));
       })
     );
+  }
+
+  /**
+   * Updates a chat's title in the local state in real-time.
+   * 
+   * @param chatId Unique identifier of the target chat.
+   * @param newTitle New title string to apply.
+   */
+  updateChatTitleInState(chatId: string, newTitle: string): void {
+    this.chats.update((list: Chat[]) => {
+      const updated = list.map((chat: Chat) => 
+        chat.id === chatId ? { ...chat, title: newTitle } : chat
+      );
+      this.saveToCache(updated);
+      return updated;
+    });
   }
 
   /**
@@ -99,6 +163,10 @@ export class ChatLayoutService {
    * @param chatId Unique identifier of the chat to remove.
    */
   removeChatFromState(chatId: string): void {
-    this.chats.update((list) => list.filter((chat) => chat.id !== chatId));
+    this.chats.update((list: Chat[]) => {
+      const updated = list.filter((chat: Chat) => chat.id !== chatId);
+      this.saveToCache(updated);
+      return updated;
+    });
   }
 }
