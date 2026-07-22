@@ -76,6 +76,24 @@ export class ChatLayoutService {
   }
 
   /**
+   * Deletes a chat session on the backend and updates the reactive local state.
+   * 
+   * @param chatId Unique identifier of the chat to delete.
+   * @returns Observable emitting the backend response.
+   */
+  deleteChat(chatId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/chats/${chatId}`).pipe(
+      tap(() => {
+        this.removeChatFromState(chatId);
+      }),
+      catchError((error) => {
+        console.error('Failed to delete chat:', error);
+        return throwError(() => new Error('Could not delete the chat session.'));
+      })
+    );
+  }
+
+  /**
    * Removes a chat from the local state list (e.g., after a delete operation).
    * 
    * @param chatId Unique identifier of the chat to remove.

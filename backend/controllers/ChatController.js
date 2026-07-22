@@ -1,4 +1,4 @@
-const chatService = require('../services/ChatService')
+const chatService = require('../services/ChatService');
 
 /**
  * Controller handling HTTP requests related to chats and messages.
@@ -80,6 +80,27 @@ class ChatController {
 
       console.error('Error sending message:', error);
       return res.status(500).json({ message: 'Internal server error while sending message.' });
+    }
+  }
+
+  /**
+   * Deletes a chat and its associated messages for the logged-in user.
+   */
+  async deleteChat(req, res) {
+    try {
+      const userId = req.user.id;
+      const { chatId } = req.params;
+
+      await chatService.deleteChat(chatId, userId);
+
+      return res.status(204).send();
+    } catch (error) {
+      if (error.message === 'CHAT_NOT_FOUND') {
+        return res.status(404).json({ message: 'Chat not found or access denied.' });
+      }
+
+      console.error('Error deleting chat:', error);
+      return res.status(500).json({ message: 'Internal server error while deleting chat.' });
     }
   }
 }
