@@ -21,7 +21,7 @@
               [routerLink]="['/chat', chat.id]"
               routerLinkActive="active"
               class="chat-link">
-              <span class="chat-title">{{ chat.title }}</span>
+              <span class="chat-title">{{ chat.title || 'Untitled Chat' }}</span>
             </a>
 
             <button
@@ -40,6 +40,24 @@
         }
       }
     </nav>
+
+    <!-- User Profile & Logout Footer -->
+    <footer class="sidebar-footer">
+      <div class="user-info" [title]="userEmail || ''">
+        <div class="avatar-circle">
+          {{ (userEmail ? userEmail.charAt(0) : 'U') }}
+        </div>
+        <span class="user-email">{{ userEmail  }}</span>
+      </div>
+
+      <button
+        type="button"
+        class="btn-logout"
+        (click)="handleLogout()"
+        title="Log out">
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
+    </footer>
   </aside>
 
   <main class="chat-viewport">

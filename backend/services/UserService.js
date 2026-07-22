@@ -40,7 +40,7 @@ const authenticate = async (email, password) => {
         throw new Error('Invalid credentials');
     }
 
-    return { id: user.id, name: user.name };
+    return { id: user.id, name: user.name, email: user.email };
 };
 
 module.exports = { createUser, authenticate };

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { ChatLayoutService } from '../../../services/chat/layout/chat-layout';
+import { UserService } from '../../../services/user/user.service';
 
 @Component({
   selector: 'app-chat-layout',
@@ -11,13 +12,16 @@ import { ChatLayoutService } from '../../../services/chat/layout/chat-layout';
 })
 export class ChatLayout implements OnInit {
   protected layoutService = inject(ChatLayoutService);
+  private userService = inject(UserService);
   private router = inject(Router);
 
-  // Expose reactive signals to the template
+  // Expose reactive signals and user state to the template
   chats = this.layoutService.chats;
   isLoading = this.layoutService.isLoading;
+  userEmail: string | null = null;
 
   ngOnInit(): void {
+    this.userEmail = this.userService.getUserEmail();
     this.fetchHistory();
   }
 
@@ -36,17 +40,24 @@ export class ChatLayout implements OnInit {
   }
 
   /**
+   * Handles user logout by purging token/cache and redirecting to the login route.
+   */
+  handleLogout(): void {
+    this.userService.logout();
+    this.layoutService.clearState();
+    this.router.navigate(['/login']);
+  }
+
+  /**
    * Handles chat deletion and redirects if the deleted chat is currently active.
    */
   onDeleteChat(event: MouseEvent, chatId: string): void {
-    // Prevents triggering the routerLink navigation on the parent anchor tag
     event.stopPropagation();
     event.preventDefault();
 
     if (confirm('Are you sure you want to delete this conversation?')) {
       this.layoutService.deleteChat(chatId).subscribe({
         next: () => {
-          // Redirect to the base chat route if the currently open chat was deleted
           if (this.router.url.includes(chatId)) {
             this.router.navigate(['/chat']);
           }

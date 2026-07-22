@@ -188,6 +188,34 @@ class ChatService {
       return true;
     });
   }
+  /**
+    * Updates the title of a specific chat checking for user ownership.
+    */
+  async updateChatTitle(chatId, userId, title) {
+    // 1. Verifica existência e propriedade
+    const chat = await db('chats')
+      .where({ id: chatId, user_id: userId })
+      .first();
+
+    if (!chat) {
+      throw new Error('CHAT_NOT_FOUND');
+    }
+
+    // 2. Executa o update
+    await db('chats')
+      .where({ id: chatId, user_id: userId })
+      .update({
+        title,
+        updated_at: db.fn.now()
+      });
+
+    // 3. Retorna o registro atualizado
+    return {
+      id: chat.id,
+      title,
+      createdAt: chat.created_at
+    };
+  }
 }
 
 module.exports = new ChatService();

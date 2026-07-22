@@ -103,6 +103,31 @@ class ChatController {
       return res.status(500).json({ message: 'Internal server error while deleting chat.' });
     }
   }
+  /**
+    * Updates the title of an existing chat for the logged-in user.
+    */
+  async updateTitle(req, res) {
+    try {
+      const userId = req.user.id;
+      const { chatId } = req.params;
+      const { title } = req.body;
+
+      if (!title || !title.trim()) {
+        return res.status(400).json({ message: 'Title cannot be empty.' });
+      }
+
+      const updatedChat = await chatService.updateChatTitle(chatId, userId, title.trim());
+
+      return res.status(200).json(updatedChat);
+    } catch (error) {
+      if (error.message === 'CHAT_NOT_FOUND') {
+        return res.status(404).json({ message: 'Chat not found or access denied.' });
+      }
+
+      console.error('Error updating chat title:', error);
+      return res.status(500).json({ message: 'Internal server error while updating chat title.' });
+    }
+  }
 }
 
 module.exports = new ChatController();

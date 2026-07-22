@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { API_URL } from '../../../app.config';
 
-
 export type MessageSender = 'user' | 'assistant';
 
 export interface Message {
@@ -17,6 +16,12 @@ export interface Message {
 export interface SendMessagePayload {
   chatId: string;
   content: string;
+}
+
+export interface Chat {
+  id: string;
+  title: string;
+  createdAt?: string;
 }
 
 @Injectable({
@@ -54,6 +59,22 @@ export class ChatWindowService {
       catchError((error) => {
         console.error('Failed to send message:', error);
         return throwError(() => new Error('Could not process your message. Please try again.'));
+      })
+    );
+  }
+
+  /**
+   * Updates the title of a specific chat session.
+   * 
+   * @param chatId Unique identifier of the chat to update.
+   * @param title The new title to assign to the chat session.
+   * @returns Observable emitting the updated Chat object or status.
+   */
+  updateChatTitle(chatId: string, title: string): Observable<Chat> {
+    return this.http.patch<Chat>(`${this.apiUrl}/chats/${chatId}`, { title }).pipe(
+      catchError((error) => {
+        console.error(`Failed to update title for chat ${chatId}:`, error);
+        return throwError(() => new Error('Could not update chat title. Please try again.'));
       })
     );
   }
