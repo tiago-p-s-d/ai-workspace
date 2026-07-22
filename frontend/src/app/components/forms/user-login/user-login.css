@@ -45,13 +45,13 @@ input {
 }
 
 input:focus {
-  border-color: #8e44ad;
+  border-color: #333332;
 }
 
 button {
   width: 100%;
   padding: 12px;
-  background-color: #8e44ad;
+  background-color: #333332;
   color: white;
   border: none;
   border-radius: 8px;
@@ -78,6 +78,6 @@ button:disabled {
 }
 
 .forgot-link:hover {
-  color: #8e44ad;
+  color: #333332;
   text-decoration: underline;
 }
