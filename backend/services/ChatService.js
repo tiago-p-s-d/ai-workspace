@@ -11,9 +11,8 @@ class ChatService {
    * @returns {Promise<string>} Model response text.
    */
   async getOllamaResponse(messagesHistory) {
-    // Se estiver no Docker, usa host.docker.internal; se rodar direto no host, usa localhost
     const OLLAMA_URL = process.env.OLLAMA_URL || 'http://host.docker.internal:11434';
-    const MODEL = process.env.OLLAMA_MODEL || 'qwen2.5-coder:latest'; // ou o modelo que você baixou
+    const MODEL = process.env.OLLAMA_MODEL || 'qwen2.5-coder:latest';
 
     try {
       const response = await fetch(`${OLLAMA_URL}/api/chat`, {
@@ -31,10 +30,10 @@ class ChatService {
       }
 
       const data = await response.json();
-      return data.message?.content || 'Não foi possível obter uma resposta do modelo.';
+      return data.message?.content || 'Unable to retrieve a response from the model.';
     } catch (error) {
       console.error('Error connecting to Ollama:', error.message);
-      return 'Desculpe, ocorreu um erro ao se comunicar com o modelo local.';
+      return 'Sorry, an error occurred while communicating with the local model.';
     }
   }
 
@@ -114,36 +113,35 @@ class ChatService {
       throw new Error('CHAT_NOT_FOUND');
     }
 
-    // 1. Salva a mensagem enviada pelo usuário
+    // 1. Save user message
     await db('messages').insert({
       chat_id: chatId,
       sender: 'user',
       content
     });
 
-    // 2. Busca histórico anterior da conversa para dar contexto ao Ollama
+    // 2. Fetch context history
     const history = await db('messages')
       .select('sender', 'content')
       .where({ chat_id: chatId })
       .orderBy('created_at', 'asc');
 
-    // Mapeia os papeis para o formato esperado pelo Ollama (user/assistant)
     const formattedMessages = history.map(msg => ({
       role: msg.sender === 'assistant' ? 'assistant' : 'user',
       content: msg.content
     }));
 
-    // 3. Obtém resposta da IA local
+    // 3. Get response from local Ollama model
     const assistantContent = await this.getOllamaResponse(formattedMessages);
 
-    // 4. Salva a resposta gerada pelo assistente
+    // 4. Save assistant response
     const [messageId] = await db('messages').insert({
       chat_id: chatId,
       sender: 'assistant',
       content: assistantContent
     });
 
-    // 5. Busca e retorna o registro gravado
+    // 5. Fetch and return saved response record
     const assistantMessage = await db('messages')
       .select(
         'id',
@@ -158,6 +156,38 @@ class ChatService {
 
     return assistantMessage;
   }
+
+  /**
+   * Deletes a chat session and all associated messages for a specific user.
+   * 
+   * @param {string|number} chatId 
+   * @param {number} userId 
+   * @returns {Promise<boolean>} True if deleted successfully.
+   */
+  async deleteChat(chatId, userId) {
+    return db.transaction(async (trx) => {
+      // 1. Check if the chat exists and belongs to the requesting user
+      const chat = await trx('chats')
+        .where({ id: chatId, user_id: userId })
+        .first();
+
+      if (!chat) {
+        throw new Error('CHAT_NOT_FOUND');
+      }
+
+      // 2. Delete all related messages first (foreign key protection)
+      await trx('messages')
+        .where({ chat_id: chatId })
+        .del();
+
+      // 3. Delete the chat session record
+      await trx('chats')
+        .where({ id: chatId, user_id: userId })
+        .del();
+
+      return true;
+    });
+  }
 }
 
-module.exports = new ChatService(); 
+module.exports = new ChatService();

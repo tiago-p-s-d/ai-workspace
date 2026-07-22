@@ -22,6 +22,7 @@ import { ChatWindowService, Message } from '../../../services/chat/window/chat-w
 })
 export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('messageInput') private messageInput!: ElementRef<HTMLTextAreaElement>;
 
   private route = inject(ActivatedRoute);
   private chatWindowService = inject(ChatWindowService);
@@ -39,7 +40,6 @@ export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
   private shouldScrollToBottom = false;
 
   ngOnInit(): void {
-    // Subscribe to route parameter changes (/chat/:id)
     this.routeSubscription = this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
       this.activeChatId.set(id);
@@ -62,6 +62,27 @@ export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
   ngOnDestroy(): void {
     if (this.routeSubscription) {
       this.routeSubscription.unsubscribe();
+    }
+  }
+
+  /**
+   * Adjusts textarea height dynamically based on content.
+   */
+  adjustTextareaHeight(): void {
+    if (this.messageInput) {
+      const el = this.messageInput.nativeElement;
+      el.style.height = 'auto';
+      el.style.height = `${Math.min(el.scrollHeight, 150)}px`;
+    }
+  }
+
+  /**
+   * Handles keyboard events (Enter to send, Shift+Enter to break line).
+   */
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.handleSendMessage();
     }
   }
 
@@ -93,23 +114,24 @@ export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
       return;
     }
 
-    // 1. Create optimistic local user message
     const userMessage: Message = {
       chatId,
       sender: 'user',
       content
     };
 
-    // 2. Append immediately to UI and clear prompt
     this.messages.update((list) => [...list, userMessage]);
     this.userPrompt = '';
     this.isSending.set(true);
     this.shouldScrollToBottom = true;
 
-    // 3. Dispatch HTTP payload
+    // Reset textarea height after sending
+    if (this.messageInput) {
+      this.messageInput.nativeElement.style.height = 'auto';
+    }
+
     this.chatWindowService.sendMessage({ chatId, content }).subscribe({
       next: (assistantMessage) => {
-        // Append response from server
         this.messages.update((list) => [...list, assistantMessage]);
         this.isSending.set(false);
         this.shouldScrollToBottom = true;
@@ -120,9 +142,6 @@ export class ChatWindow implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  /**
-   * Scroll viewport container to the lowest boundary.
-   */
   private scrollToBottom(): void {
     try {
       if (this.scrollContainer) {
